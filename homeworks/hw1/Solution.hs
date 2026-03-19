@@ -135,9 +135,20 @@ mean3 (x:xs) = go x (x^2) 1 xs
         go (sumAcc + x) (sumSqAcc + x^2) (lenAcc + 1) xs
 
 
+-- Task 4
+-- Matrix Multiplication Represent a matrix as [[Int]] (a list of rows). Write
+-- matMul :: [[Int]] -> [[Int]] -> [[Int]]
+-- using nested list comprehensions. If the first matrix has dimensions m × p and the second p × n, then the entry at row i, column j of the product is:
+--
+-- sum [ a !! i !! k * b !! k !! j | k <- [0 .. p-1] ]
+-- The outer comprehension should range over row indices i and column indices j.
 
-
-
+matMul :: [[Int]] -> [[Int]] -> [[Int]]
+matMul a b = [[sum [a !! i !! k * b !! k !! j | k <- [0..p-1]] | j <- [0..n-1]] | i <- [0..m-1]]
+  where
+    m = length a
+    p = length b
+    n = length (head b)
 
 
 
