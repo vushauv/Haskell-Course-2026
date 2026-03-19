@@ -174,4 +174,24 @@ hamming = 1 : merge (map (*2) hamming)
                     (merge (map (*3) hamming)
                            (map (*5) hamming))
 
+-- Task 9
+-- Infinite Prime Stream The primesTo function from Exercise 3 only generates primes up to a fixed bound. 
+-- Using lazy evaluation we can instead define an infinite stream of all primes.
+-- (a) Define primes :: [Int]
 
+
+-- as an infinite list of all prime numbers, by applying the same sieve idea from Exercise 3 to the infinite list [2..].
+-- Your sieve function should be unchanged — only the input changes.
+
+primes :: [Int]
+primes = sieve [2..]
+
+-- (b) Use primes to give a new definition of isPrime :: Int -> Bool that does not require an explicit upper bound.
+
+isPrime2 :: Int -> Bool
+isPrime2 n = go primes
+  where
+    go (p:ps)
+      | p == n    = True
+      | p > n     = False
+      | otherwise = go ps
