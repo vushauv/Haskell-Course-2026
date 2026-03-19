@@ -73,9 +73,9 @@ goldbachPairs n
 power :: Int -> Int -> Int
 power b e
    | e < 0     = 0
-   | otherwise = power' 1 b e   
+   | otherwise = power' 1 e
+   where
+      power' !acc 0 = acc
+      power' !acc e = power' (acc * b) (e-1)
 
-power' :: Int -> Int -> Int -> Int
-power' acc b 0 = acc
-power' acc b e = power' (acc * b) b (e-1)
 
