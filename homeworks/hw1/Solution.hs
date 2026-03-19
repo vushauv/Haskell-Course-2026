@@ -63,3 +63,19 @@ goldbachPairs n
 --   where primes = primesTo n
    | otherwise = [(p,q) | p <- [2..n], q <- [2..n], isPrime p, isPrime q , p <= q, p + q == n]
 
+
+
+-- Task 7
+-- Integer Power with Bang Patterns.
+-- Write a recursive function power :: Int -> Int -> Int that computes power b e = b ^ e using an accumulator.
+-- Use bang patterns on the accumulator to ensure strict evaluation.
+
+power :: Int -> Int -> Int
+power b e
+   | e < 0     = 0
+   | otherwise = power' 1 b e   
+
+power' :: Int -> Int -> Int -> Int
+power' acc b 0 = acc
+power' acc b e = power' (acc * b) b (e-1)
+
