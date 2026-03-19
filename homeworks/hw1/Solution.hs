@@ -47,5 +47,15 @@ isPrime x
    | otherwise = last (primesTo x) == x
 
 
+-- Task 1
+-- Goldbach Pairs. Write a function goldbachPairs :: Int -> [(Int, Int)] that, given an even integer n ≥ 4, returns all pairs (p, q) satisfying:
+-- p and q are both prime numbers
+-- p + q == n
+-- p ≤ q
+-- Use a list comprehension to generate the result. Define a helper isPrime :: Int -> Bool using Exercise 3.
 
 
+goldbachPairs :: Int -> [(Int, Int)]
+goldbachPairs n
+   | n < 4 = []
+   | otherwise = [(p,q) | p <- primesTo n, q <- primesTo n, p <= q, p + q == n]
