@@ -58,5 +58,6 @@ isPrime x
 goldbachPairs :: Int -> [(Int, Int)]
 goldbachPairs n
    | n < 4 = []
+   | odd n = []
    | otherwise = [(p,q) | p <- primes, q <- primes, p <= q, p + q == n]
    where primes = primesTo n
