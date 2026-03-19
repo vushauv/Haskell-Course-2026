@@ -151,6 +151,27 @@ matMul a b = [[sum [a !! i !! k * b !! k !! j | k <- [0..p-1]] | j <- [0..n-1]] 
     n = length (head b)
 
 
+-- Task 6
+-- Hamming Numbers A Hamming number is a positive integer whose only prime factors are 2, 3, and 5 — numbers of the form 
+-- 2^a × 3^b × 5^c with a, b, c ≥ 0. The sequence begins: 1, 2, 3, 4, 5, 6, 8, 9, 10, 12, …
+-- (a) Write a helper
+-- merge :: Ord a => [a] -> [a] -> [a]
+-- that merges two sorted (potentially infinite) lists into one sorted list, eliminating duplicates.
 
+merge :: Ord a => [a] -> [a] -> [a]
+merge [] ys = ys
+merge xs [] = xs
+merge (x:xs) (y:ys)
+  | x < y    = x : merge xs (y:ys)
+  | x == y   = x : merge xs ys        
+  | otherwise = y : merge (x:xs) ys
+
+
+--(b) Using merge, define the infinite list
+-- hamming :: [Integer]
+hamming :: [Integer]
+hamming = 1 : merge (map (*2) hamming)
+                    (merge (map (*3) hamming)
+                           (map (*5) hamming))
 
 
