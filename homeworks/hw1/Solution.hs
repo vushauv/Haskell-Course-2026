@@ -79,3 +79,67 @@ power b e
       power' !acc e = power' (acc * b) (e-1)
 
 
+-- Task 8
+-- Running Maximum: seq vs. Bang Patterns Implement two versions of a function listMax :: [Int] -> Int 
+-- that returns the maximum element of a non-empty list using a helper with an accumulator:
+--
+-- The first version uses seq to force evaluation of the accumulator in the helper function.
+-- The second version uses bang patterns on the accumulator argument of the helper function.
+
+listMax :: [Int] -> Int
+listMax (x:xs) = go x xs
+  where
+    go acc []     = acc
+    go acc (x:xs) = let newAcc = max acc x
+                    in seq newAcc (go newAcc xs)
+
+listMax2 :: [Int] -> Int
+listMax2 (x:xs) = go x xs
+   where
+      go !acc [] = acc
+      go !acc (x:xs) = go (max acc x) xs
+
+
+-- task 10
+-- Strict Accumulation and Space Leaks Computing the mean of a list requires knowing both the sum and the length.
+-- Write a function mean :: [Double] -> Double
+-- using a tail-recursive helper. Do not use any library functions for the recursion.
+
+-- (a) Write a first version with no strictness annotations.
+
+mean1 :: [Double] -> Double
+mean1 [] = 0 -- conceptually to consider
+mean1 (x:xs) = go x 1 xs
+   where
+      go sumAcc lenAcc []     = sumAcc / lenAcc
+      go sumAcc lenAcc (x:xs) = go (sumAcc+x) (lenAcc+1) xs 
+
+-- (b) Fix the space leak using bang patterns. Is a bang pattern on the pair itself sufficient, or do the components also need to be forced individually?
+
+mean2 :: [Double] -> Double
+mean2 [] = 0 -- conceptually to consider
+mean2 (x:xs) = go x 1 xs
+   where
+      go !sumAcc !lenAcc []     = sumAcc / lenAcc
+      go !sumAcc !lenAcc (x:xs) = go (sumAcc+x) (lenAcc+1) xs 
+
+-- (c) Generalise your strict solution to compute both the mean and the variance σ² = (Σxᵢ²)/n − μ² in a single pass. Apply bang patterns appropriately to all three components.
+
+mean3 :: [Double] -> (Double, Double)
+mean3 (x:xs) = go x (x^2) 1 xs
+  where
+    go !sumAcc !sumSqAcc !lenAcc [] = 
+        let mean = sumAcc / lenAcc
+        in (mean, sumSqAcc / lenAcc - mean^2)
+    go !sumAcc !sumSqAcc !lenAcc (x:xs) =
+        go (sumAcc + x) (sumSqAcc + x^2) (lenAcc + 1) xs
+
+
+
+
+
+
+
+
+
+
