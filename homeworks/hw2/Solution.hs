@@ -42,11 +42,29 @@ instance Monoid (Sequence a) where
 
 
 
+-- Task 4
+-- Tail Recursion and Sequence Search
+-- Write a function
+-- tailElem :: Eq a => a -> Sequence a -> Bool
+-- that searches for an element in a Sequence using tail recursion with an explicit stack 
+-- (a list of Sequence a values) to manage subsequences still to be inspected.
 
 
+tailElem:: Eq a => a -> Sequence a -> Bool
+tailElem elem seq = go [seq]
+   where
+      go []                  = False
+      go (Empty : rest)      = go rest
+      go (Single a : rest)   = (a == elem) || go rest
+      go (Append l r : rest) = go (l: r: rest)
 
 
-
+-- For tests
+s0 = Empty
+s1 = Single 1
+s2 = Single 2
+s3 = Append s0 s1
+s4 = Append s3 s2
 
 
 
