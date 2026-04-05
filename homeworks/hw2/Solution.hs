@@ -120,7 +120,13 @@ myReverse = foldl (\acc x -> x : acc) []
 
 -- (b) myTakeWhile :: (a -> Bool) -> [a] -> [a] — returns the longest prefix of elements 
 -- satisfying the predicate (e.g. myTakeWhile even [2,4,3,6] = [2,4]). Use foldr.
---
+
+myTakeWhile :: (a -> Bool) -> [a] -> [a]
+myTakeWhile comp = foldr(\ x acc -> if comp x then x:acc else []) [] 
+
+
+
+
 -- (c) decimal :: [Int] -> Int — interprets a list of digits as a decimal number, e.g. decimal [1,2,3] = 123.
 
 
