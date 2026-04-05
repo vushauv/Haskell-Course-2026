@@ -129,3 +129,19 @@ myTakeWhile comp = foldr(\ x acc -> if comp x then x:acc else []) []
 
 decimal :: [Int] -> Int
 decimal = foldl (\ acc x -> acc*10 + x) 0
+
+
+-- Task 8
+-- Run-length encoding via folds
+-- Run-length encoding compresses a list by replacing consecutive runs of the same element with a pair of the element and its count.
+--
+-- (a) Implement encode :: Eq a => [a] -> [(a, Int)] using foldr. For example:
+
+encode :: Eq a => [a] -> [(a, Int)]
+encode = foldr f []
+   where 
+      f x ((c, n) : rest) = if x == c then (c,n+1):rest else (x,1):(c,n):rest
+      f x [] = [(x,1)] 
+
+
+
