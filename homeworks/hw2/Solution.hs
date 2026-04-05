@@ -83,6 +83,35 @@ tailToList seq = go [] [seq]
       go !acc [] = reverse acc
 
 
+-- Task 6
+-- Tail Recursion and Reverse Polish Notation
+-- A Reverse Polish Notation (RPN) expression is a sequence of tokens:
+-- data Token = TNum Int | TAdd | TSub | TMul | TDiv
+-- Evaluation uses a stack: numbers are pushed; operators pop two values, apply the operation, and push the result back.
+-- Write a tail-recursive function
+-- tailRPN :: [Token] -> Maybe Int
+-- that processes the token list using a list as the operand stack accumulator.
+-- Return Nothing for malformed expressions (too few operands, tokens remaining after the final result) or division by zero.
+
+data Token = TNum Int | TAdd | TSub | TMul | TDiv
+
+tailRPN :: [Token] -> Maybe Int
+tailRPN tokens = go [] tokens
+   where
+      go stack          (TNum a : tRest) = go (a : stack) tRest
+      go (a : b : rest) (TAdd : tRest) = go ((b+a):rest) tRest 
+      go (a : b : rest) (TMul : tRest) = go ((b*a):rest) tRest
+      go (a : b : rest) (TSub : tRest) = go ((b-a):rest) tRest
+      go (0 : b : rest) (TDiv : tRest) = Nothing
+      go (a : b : rest) (TDiv : tRest) = go ((b `div` a):rest) tRest
+      go [a] [] = Just a 
+      go _ _ = Nothing
+      
+      
+      
+      
+
+
 
 
 
