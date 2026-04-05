@@ -109,8 +109,19 @@ tailRPN tokens = go [] tokens
       
       
       
-      
+-- Task 7
+-- Expressing functions via foldr and foldl
+-- Without using explicit recursion, implement the following functions using foldr and/or foldl:
+-- (a) myReverse :: [a] -> [a] — reverses a list. Use foldl.
 
+myReverse :: [a] -> [a]
+myReverse = foldl (\acc x -> x : acc) [] 
+
+
+-- (b) myTakeWhile :: (a -> Bool) -> [a] -> [a] — returns the longest prefix of elements 
+-- satisfying the predicate (e.g. myTakeWhile even [2,4,3,6] = [2,4]). Use foldr.
+--
+-- (c) decimal :: [Int] -> Int — interprets a list of digits as a decimal number, e.g. decimal [1,2,3] = 123.
 
 
 
