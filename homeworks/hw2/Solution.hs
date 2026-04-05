@@ -143,5 +143,13 @@ encode = foldr f []
       f x ((c, n) : rest) = if x == c then (c,n+1):rest else (x,1):(c,n):rest
       f x [] = [(x,1)] 
 
+-- (b) Implement decode :: [(a, Int)] -> [a] using foldr (and replicate). For example:
+-- decode [('a',3),('b',1),('c',3),('a',1)] = "aaabccca"
+
+decode :: [(a, Int)] -> [a] 
+decode = foldr f []
+   where 
+      f (c, n) acc = replicate n c ++ acc
+
 
 
