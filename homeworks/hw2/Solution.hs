@@ -1,4 +1,3 @@
-import Data.Sequence (Seq)
 import Data.Foldable (Foldable(toList))
 data Sequence a = Empty | Single a | Append (Sequence a) (Sequence a)
    deriving Show
