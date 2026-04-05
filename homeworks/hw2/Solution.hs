@@ -50,7 +50,7 @@ instance Monoid (Sequence a) where
 -- (a list of Sequence a values) to manage subsequences still to be inspected.
 
 
-tailElem:: Eq a => a -> Sequence a -> Bool
+tailElem :: Eq a => a -> Sequence a -> Bool
 tailElem elem seq = go [seq]
    where
       go []                  = False
@@ -67,6 +67,20 @@ s3 = Append s0 s1
 s4 = Append s3 s2
 
 
+
+-- Task 5
+-- Tail Recursion and Sequence Flatten
+-- Write a tail-recursive function
+-- tailToList :: Sequence a -> [a]
+-- that converts a Sequence a to a list [a] in left-to-right order.
+
+tailToList :: Sequence a -> [a]
+tailToList seq = go [] [seq]
+   where 
+      go !acc (Empty : rest) = go acc rest
+      go !acc (Single a : rest) = go (a:acc) rest
+      go !acc (Append l r : rest) = go acc (l:r:rest)
+      go !acc [] = reverse acc
 
 
 
