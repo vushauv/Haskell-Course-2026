@@ -125,17 +125,7 @@ myTakeWhile :: (a -> Bool) -> [a] -> [a]
 myTakeWhile comp = foldr(\ x acc -> if comp x then x:acc else []) [] 
 
 
-
-
 -- (c) decimal :: [Int] -> Int — interprets a list of digits as a decimal number, e.g. decimal [1,2,3] = 123.
 
-
-
-
-
-
-
-
-
-
-
+decimal :: [Int] -> Int
+decimal = foldl (\ acc x -> acc*10 + x) 0
