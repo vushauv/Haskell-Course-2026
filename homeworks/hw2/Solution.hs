@@ -22,7 +22,7 @@ instance Functor Sequence where
 instance Foldable Sequence where
    foldMap f Empty        =  mempty 
    foldMap f (Single a)   = f a
-   foldMap f (Append l r) = (foldMap f l) <> (foldMap f r)
+   foldMap f (Append l r) = foldMap f l <> foldMap f r
 
 seqToList :: Sequence a -> [a]
 seqToList a = toList a
@@ -30,4 +30,34 @@ seqToList a = toList a
 
 seqLength :: Sequence a -> Int
 seqLength a = length a 
+
+
+
+-- Task 3
+instance Semigroup (Sequence a) where
+   (<>) = Append 
+
+instance Monoid (Sequence a) where
+    mempty = Empty
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
