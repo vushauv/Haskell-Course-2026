@@ -1,5 +1,6 @@
 import qualified Data.Map as Map
 import Control.Monad (foldM, guard)
+import Control.Monad.Writer (Writer, tell, runWriter)
 import Data.List (permutations, sort)
 
 -- Task 1 Maze Navigation
@@ -42,6 +43,7 @@ type Guest = String
 type Conflict = (Guest, Guest)
 
 seatings :: [Guest] -> [Conflict] -> [[Guest]]
+seatings [] _ = [[]]
 seatings guests conflicts = do
   perm <- permutations guests
   let pairs = zip perm (tail perm) ++ [(last perm, head perm)]
@@ -94,4 +96,47 @@ validateAge age
 
 validateAges :: [Int] -> Result [Int]
 validateAges = mapM validateAge
+
+
+
+-- Task 5 Evaluator with simplification log
+
+data Expr = Lit Int | Add Expr Expr | Mul Expr Expr | Neg Expr
+
+instance Show Expr where
+  show (Lit n)   = show n
+  show (Neg e)   = "(-" ++ show e ++ ")"
+  show (Add l r) = "(" ++ show l ++ " + " ++ show r ++ ")"
+  show (Mul l r) = "(" ++ show l ++ " * " ++ show r ++ ")"
+
+simplify :: Expr -> Writer [String] Expr
+simplify (Lit n) = return (Lit n)
+
+simplify (Neg e) = do
+  e' <- simplify e
+  case e' of
+    Neg inner -> tell ["Double negation: -(-e) -> e"] >> return inner
+    _         -> return (Neg e')
+
+simplify (Add l r) = do
+  l' <- simplify l
+  r' <- simplify r
+  case (l', r') of
+    (Lit 0, _)   -> tell ["Add identity: 0 + e -> e"]             >> return r'
+    (_, Lit 0)   -> tell ["Add identity: e + 0 -> e"]             >> return l'
+    (Lit a, Lit b) -> tell ["Constant fold: " ++ show a ++ " + " ++ show b ++ " -> " ++ show (a+b)]
+                      >> return (Lit (a + b))
+    _            -> return (Add l' r')
+
+simplify (Mul l r) = do
+  l' <- simplify l
+  r' <- simplify r
+  case (l', r') of
+    (Lit 0, _)   -> tell ["Zero absorption: 0 * e -> 0"]          >> return (Lit 0)
+    (_, Lit 0)   -> tell ["Zero absorption: e * 0 -> 0"]          >> return (Lit 0)
+    (Lit 1, _)   -> tell ["Mul identity: 1 * e -> e"]             >> return r'
+    (_, Lit 1)   -> tell ["Mul identity: e * 1 -> e"]             >> return l'
+    (Lit a, Lit b) -> tell ["Constant fold: " ++ show a ++ " * " ++ show b ++ " -> " ++ show (a*b)]
+                      >> return (Lit (a * b))
+    _            -> return (Mul l' r')
 
