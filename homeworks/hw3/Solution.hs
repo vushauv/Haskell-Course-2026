@@ -36,8 +36,6 @@ decryptWords :: Key -> [String] -> Maybe [String]
 decryptWords key = traverse (decrypt key)
 
 
-
-
 -- Task 3 Seating arrangements
 
 type Guest = String
@@ -51,4 +49,49 @@ seatings guests conflicts = do
   return perm
   where
     conflicting (a, b) = (a, b) `elem` conflicts || (b, a) `elem` conflicts
+
+
+-- Task 4 Result monad with warnings
+
+data Result a = Failure String | Success a [String]
+
+instance Show a => Show (Result a) where
+  show (Failure msg)     = "Failure: " ++ msg
+  show (Success v [])    = "Success: " ++ show v
+  show (Success v ws)    = "Success: " ++ show v ++ " [warnings: " ++ show ws ++ "]"
+
+-- (a)
+instance Functor Result where
+  fmap _ (Failure msg)    = Failure msg
+  fmap f (Success v ws)   = Success (f v) ws
+
+instance Applicative Result where
+  pure x = Success x []
+  Failure msg   <*> _             = Failure msg
+  _             <*> Failure msg   = Failure msg
+  Success f ws1 <*> Success x ws2 = Success (f x) (ws1 ++ ws2)
+
+instance Monad Result where
+  return = pure
+  Failure msg   >>= _ = Failure msg
+  Success v ws  >>= f = case f v of
+    Failure msg      -> Failure msg
+    Success v' ws'   -> Success v' (ws ++ ws')
+
+-- (b)
+warn :: String -> Result ()
+warn msg = Success () [msg]
+
+failure :: String -> Result a
+failure = Failure
+
+-- (c)
+validateAge :: Int -> Result Int
+validateAge age
+  | age < 0   = failure $ "Negative age: " ++ show age
+  | age > 150 = do warn $ "Unusual age: " ++ show age; return age
+  | otherwise = return age
+
+validateAges :: [Int] -> Result [Int]
+validateAges = mapM validateAge
 
