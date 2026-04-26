@@ -1,5 +1,6 @@
 import qualified Data.Map as Map
-import Control.Monad (foldM)
+import Control.Monad (foldM, guard)
+import Data.List (permutations, sort)
 
 -- Task 1 Maze Navigation
 
@@ -33,4 +34,21 @@ decrypt key = traverse (`Map.lookup` key)
 
 decryptWords :: Key -> [String] -> Maybe [String]
 decryptWords key = traverse (decrypt key)
+
+
+
+
+-- Task 3 Seating arrangements
+
+type Guest = String
+type Conflict = (Guest, Guest)
+
+seatings :: [Guest] -> [Conflict] -> [[Guest]]
+seatings guests conflicts = do
+  perm <- permutations guests
+  let pairs = zip perm (tail perm) ++ [(last perm, head perm)]
+  guard $ all (not . conflicting) pairs
+  return perm
+  where
+    conflicting (a, b) = (a, b) `elem` conflicts || (b, a) `elem` conflicts
 
