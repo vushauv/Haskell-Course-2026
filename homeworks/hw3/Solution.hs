@@ -1,7 +1,7 @@
 import qualified Data.Map as Map
 import Control.Monad (foldM)
 
--- Task 1 Maybe Monad
+-- Task 1 Maze Navigation
 
 type Pos = (Int, Int)
 data Dir = N | S | E | W deriving (Eq, Ord, Show)
@@ -22,3 +22,15 @@ safePath maze start dirs = fmap reverse $ foldM step [start] dirs
     step acc@(pos : _) dir = do
       next <- move maze pos dir
       return (next : acc)
+
+
+-- Task 2 Decoding a message
+
+type Key = Map.Map Char Char
+
+decrypt :: Key -> String -> Maybe String
+decrypt key = traverse (`Map.lookup` key)
+
+decryptWords :: Key -> [String] -> Maybe [String]
+decryptWords key = traverse (decrypt key)
+
