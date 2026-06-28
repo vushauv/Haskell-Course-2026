@@ -1,0 +1,7 @@
+snapshot: lts-24.34  # GHC 9.10.3
+
+packages:
+  - .
+
+system-ghc: true
+install-ghc: false
