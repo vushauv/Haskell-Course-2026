@@ -1,0 +1,38 @@
+name:                mdethodology
+version:             0.1.0.0
+synopsis:            Static site generator in Haskell
+license:             BSD-3-Clause
+author:              Vasili Vushau
+
+ghc-options:
+  - -Wall
+
+dependencies:
+  - base >= 4.7 && < 5
+  - containers        
+  - directory        
+  - filepath       
+
+
+library:
+  source-dirs: src
+
+executables:
+  mdethodology:
+    main:                Main.hs
+    source-dirs:         app
+    dependencies:
+      - mdethodology
+    ghc-options:
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
+
+tests:
+  mdethodology-test:
+    main:                Spec.hs
+    source-dirs:         test
+    dependencies:
+      - mdethodology
+      - hspec
+      - QuickCheck
