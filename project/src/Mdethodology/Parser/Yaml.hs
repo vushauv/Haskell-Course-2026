@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Mdethodology.Parser.Yaml (yamlValue, parseYaml) where
 
 import Control.Applicative
@@ -17,28 +15,61 @@ scalar = yBool <|> yNull <|> yNumber <|> yString
     yNumber = YNumber . read <$> some (satisfy (`elem` "0123456789.-"))
     yString = YString <$> some (satisfy (`notElem` "\n:#"))
 
+-- Count the leading spaces of the current line (the line's indentation).
+indent :: Parser Int
+indent = length <$> many (char ' ')
 
--- A block list: lines beginning with "- ".
-yList :: Parser YamlValue
-yList = YList <$> some item
-  where item = string "- " *> yamlValue <* char '\n'
+-- A scalar that fills the rest of the line.
+scalarLine :: Parser YamlValue
+scalarLine = scalar <* char '\n'
 
--- A block map: lines of "key: value".
-yMap :: Parser YamlValue
-yMap = (YMap . Map.fromList) <$> some pair
-  where
-    pair = do
-      k <- some (satisfy (`notElem` ":\n"))
-      _ <- string ": "
-      v <- scalar
-      _ <- char '\n'
-      pure (k, v)
+-- The value following "key:" — either an inline scalar on the same line, or a
+-- nested block (map/list) on the following lines, indented deeper than `parent`.
+valueFor :: Int -> Parser YamlValue
+valueFor parent =
+      (char ' ' *> scalarLine)
+  <|> (char '\n' *> block (parent + 1))
 
--- The entry point: a value is a list, or a map, or a scalar.
+-- A block value: a map or a list, whose entries are indented per the predicate.
+block :: Int -> Parser YamlValue
+block minI = mapBlock minI <|> listBlock minI
+
+-- A block map: a first entry whose indent is >= minI fixes the level, then any
+-- number of sibling entries at exactly that indent.
+mapBlock :: Int -> Parser YamlValue
+mapBlock minI = do
+  (i, p) <- mapEntry (>= minI)
+  ps     <- many (mapEntry (== i))
+  pure (YMap (Map.fromList (p : map snd ps)))
+
+mapEntry :: (Int -> Bool) -> Parser (Int, (String, YamlValue))
+mapEntry ok = do
+  i <- indent
+  if ok i then pure () else empty
+  k <- some (satisfy (`notElem` ":\n"))
+  _ <- char ':'
+  v <- valueFor i
+  pure (i, (k, v))
+
+-- A block list: lines of "- scalar", all at the same indent.
+listBlock :: Int -> Parser YamlValue
+listBlock minI = do
+  (i, x) <- listItem (>= minI)
+  xs     <- many (listItem (== i))
+  pure (YList (x : map snd xs))
+
+listItem :: (Int -> Bool) -> Parser (Int, YamlValue)
+listItem ok = do
+  i <- indent
+  if ok i then pure () else empty
+  _ <- string "- "
+  v <- scalar
+  _ <- char '\n'
+  pure (i, v)
+
+-- The entry point: a block (map/list), or a single scalar line/value.
 yamlValue :: Parser YamlValue
-yamlValue = yList <|> yMap <|> scalar
+yamlValue = block 0 <|> scalarLine <|> scalar
 
 parseYaml :: String -> Either ParseError YamlValue
 parseYaml = parse yamlValue
-
-

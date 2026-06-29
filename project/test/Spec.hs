@@ -95,6 +95,11 @@ yamlSpec = describe "YAML parser" $ do
   it "parses a list of scalars" $
     parseYaml "- a\n- b\n"
       `shouldBe` Right (YList [YString "a", YString "b"])
+  it "parses a nested map" $
+    parseYaml "author:\n  name: V\n  age: 3\n"
+      `shouldBe` Right (YMap (Map.fromList
+        [ ("author", YMap (Map.fromList
+            [ ("name", YString "V"), ("age", YNumber 3) ])) ]))
 
 --------------------------------------------------------------------------------
 -- 3. Markdown parser
