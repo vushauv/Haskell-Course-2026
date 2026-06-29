@@ -5,8 +5,9 @@ import Mdethodology.Site.Routes (routeFor)
 import Mdethodology.Parser.Yaml (parseYaml)
 import Mdethodology.Parser.Markdown (parseMarkdown)
 import System.Directory (listDirectory, doesDirectoryExist)
-import System.FilePath ((</>), takeExtension)
-import Control.Monad (filterM, forM)
+import System.FilePath ((</>), takeExtension, takeBaseName, takeDirectory, splitDirectories)
+import Control.Monad (forM)
+import qualified Data.Map as Map
 
 -- Recursively list every file under a directory.
 walk :: FilePath -> IO [FilePath]
@@ -27,6 +28,19 @@ splitFrontmatter content =
       in (unlines fm, unlines (drop 1 body))
     _ -> ("", content)
 
+-- Load every templates/<name>.html under the root into a name -> contents map.
+loadTemplates :: FilePath -> IO (Map.Map String String)
+loadTemplates root = do
+  files <- walk root
+  let tmplFiles =
+        [ f | f <- files
+            , takeExtension f == ".html"
+            , "templates" `elem` splitDirectories (takeDirectory f) ]
+  pairs <- forM tmplFiles $ \f -> do
+    contents <- readFile f
+    pure (takeBaseName f, contents)   -- "default.html" -> "default"
+  pure (Map.fromList pairs)
+
 loadSources :: FilePath -> Pass
 loadSources root _ = do            -- ignore the incoming (empty) Site; we build it
   files <- walk root
@@ -41,6 +55,11 @@ loadSources root _ = do            -- ignore the incoming (empty) Site; we build
         in pure (route, Page src route (templateOf fm))
       (Left e, _) -> ioError (userError ("YAML error: "  ++ show e))
       (_, Left e) -> ioError (userError ("Markdown error: " ++ show e))
-  pure (Site pages YNull)
+  templates <- loadTemplates root
+  pure (Site pages YNull templates)
   where
-    templateOf _ = "default"     -- (read `layout:` from frontmatter as an exercise)
+    -- the page's template name comes from `layout:` in frontmatter (default "default")
+    templateOf (YMap m) = case Map.lookup "layout" m of
+                            Just (YString t) -> t
+                            _                -> "default"
+    templateOf _        = "default"

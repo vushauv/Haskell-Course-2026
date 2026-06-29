@@ -54,8 +54,9 @@ data Page = Page
 
 
 data Site = Site
-  { sitePages  :: [(Route, Page)]
-  , siteConfig :: YamlValue
+  { sitePages     :: [(Route, Page)]
+  , siteConfig    :: YamlValue
+  , siteTemplates :: Map String String   -- template name -> raw template text
   } deriving (Eq, Show)
 
 -- A build step: take the site, do some IO, return the updated site.
