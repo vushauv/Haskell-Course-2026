@@ -1,7 +1,6 @@
 module Mdethodology.Site.Links (resolveLinks) where
 
 import Mdethodology.Types
-import Data.List (find)
 
 -- Check that an internal target matches a known page; otherwise Left an error.
 checkTarget :: [Route] -> LinkTarget -> Either String LinkTarget
