@@ -67,3 +67,12 @@ satisfy ok = Parser $ \pos s ->
 
 char :: Char -> Parser Char
 char c = satisfy (== c)
+
+
+-- `string` parses each char in turn. `traverse` (free from Applicative!) turns
+-- a list of parsers into a parser of a list.
+string :: String -> Parser String
+string = traverse char
+
+spaces :: Parser ()
+spaces = () <$ many (satisfy (`elem` " \t"))
