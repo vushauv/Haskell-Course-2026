@@ -37,3 +37,11 @@ instance Monad Parser where
     case p pos s of
       Left  e               -> Left e
       Right (a, pos', rest) -> runParser (f a) pos' rest   -- f *chooses* the next parser using a
+
+
+instance Alternative Parser where
+  empty = Parser $ \pos _ -> Left (ParseError pos "empty")
+  Parser p <|> Parser q = Parser $ \pos s ->
+    case p pos s of
+      Left _    -> q pos s     -- left failed: try the right on the *original* input
+      success   -> success     -- left worked: keep it
