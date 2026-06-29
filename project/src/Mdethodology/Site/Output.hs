@@ -4,13 +4,13 @@ import Mdethodology.Types
 import Mdethodology.Site.Render (renderBlocks)
 import Mdethodology.Site.Template (renderTemplate)
 import System.Directory (createDirectoryIfMissing)
-import System.FilePath ((</>), (<.>), takeDirectory)
+import System.FilePath ((</>), takeDirectory)
 import qualified Data.Map as Map
 
 -- For each page, render its body and stash the HTML in the page's template field
 -- (kept simple here: we render straight to a string and store it for writeOutput).
 applyTemplates :: FilePath -> Pass
-applyTemplates templ site = pure site   -- wiring left intentionally light; see exercise
+applyTemplates _ site = pure site   -- wiring left intentionally light; see exercise
 
 writeOutput :: FilePath -> Pass
 writeOutput outDir site = do
@@ -20,7 +20,7 @@ writeOutput outDir site = do
     writeOne (Route r, page) = do
       let body  = renderBlocks (srcBody (pageSource page))
           scope = Map.fromList [("content", body), ("title", titleOf page)]
-          file  = outDir </> dropLeadingSlash r <.> "html"
+          file  = outDir </> pathFor r
       case renderTemplate scope defaultTemplate of
         Right html -> do
           createDirectoryIfMissing True (takeDirectory file)
@@ -32,8 +32,11 @@ writeOutput outDir site = do
                   Just (YString t) -> t
                   _                -> "Untitled"
       _      -> "Untitled"
-    dropLeadingSlash ('/':rest) = if null rest then "index" else rest
-    dropLeadingSlash s          = s
+    -- pretty URLs: each route becomes a directory with an index.html,
+    -- so a server resolves "/about" -> out/about/index.html automatically.
+    pathFor "/"          = "index.html"
+    pathFor ('/':rest)   = rest </> "index.html"
+    pathFor s            = s </> "index.html"
     defaultTemplate =
       "<!doctype html><html><head><title>{{title}}</title></head>\
       \<body>{{content}}</body></html>"
