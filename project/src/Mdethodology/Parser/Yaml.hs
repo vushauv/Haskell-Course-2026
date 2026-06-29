@@ -71,5 +71,7 @@ listItem ok = do
 yamlValue :: Parser YamlValue
 yamlValue = block 0 <|> scalarLine <|> scalar
 
+-- Require the whole input to be consumed (modulo trailing blank space), so
+-- malformed YAML is reported with a location instead of silently truncated.
 parseYaml :: String -> Either ParseError YamlValue
-parseYaml = parse yamlValue
+parseYaml = parse (yamlValue <* many (satisfy (`elem` " \n")) <* eof)

@@ -87,6 +87,13 @@ manyTill p end = go
       <|> ((:) <$> p <*> go)        -- else: parse one p, then recurse
 
 
+-- Succeed only at the end of input; otherwise fail with the offending location.
+eof :: Parser ()
+eof = Parser $ \pos s ->
+  case s of
+    []    -> Right ((), pos, s)
+    (c:_) -> Left (ParseError pos ("unexpected '" ++ [c] ++ "', expected end of input"))
+
 -- The top-level entry point: run a parser on a whole string.
 parse :: Parser a -> String -> Either ParseError a
 parse p s =

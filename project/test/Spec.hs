@@ -100,6 +100,9 @@ yamlSpec = describe "YAML parser" $ do
       `shouldBe` Right (YMap (Map.fromList
         [ ("author", YMap (Map.fromList
             [ ("name", YString "V"), ("age", YNumber 3) ])) ]))
+  it "reports trailing unparseable yaml with a location" $
+    parseYaml "a: 1\n@bad\n"
+      `shouldBe` Left (ParseError (Pos 2 1) "unexpected '@', expected end of input")
 
 --------------------------------------------------------------------------------
 -- 3. Markdown parser
@@ -130,6 +133,9 @@ markdownSpec = describe "Markdown parser" $ do
   it "parses a fenced code block with a language" $
     parseMarkdown "```haskell\nx = 1\n```\n"
       `shouldBe` Right [CodeBlock (Just "haskell") "x = 1\n"]
+  it "reports trailing unparseable markdown with a location" $
+    parseMarkdown "ok\n*"
+      `shouldBe` Left (ParseError (Pos 2 1) "unexpected '*', expected end of input")
 
 --------------------------------------------------------------------------------
 -- 4. Route derivation (pure table)

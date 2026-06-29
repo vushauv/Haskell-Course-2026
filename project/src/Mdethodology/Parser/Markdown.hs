@@ -67,5 +67,7 @@ block = heading <|> codeBlock <|> bulletList <|> paragraph
 document :: Parser [Block]
 document = many (block <* many (char '\n'))
 
+-- Require the whole document to parse, so trailing unparseable Markdown is
+-- reported with a location instead of silently dropped.
 parseMarkdown :: String -> Either ParseError [Block]
-parseMarkdown = parse document
+parseMarkdown = parse (document <* eof)
