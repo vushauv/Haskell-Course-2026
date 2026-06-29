@@ -19,3 +19,14 @@ instance Functor Parser where
     case p pos s of
       Left  e               -> Left e            -- failure passes through untouched
       Right (a, pos', rest) -> Right (f a, pos', rest)  -- apply f to the result
+
+
+instance Applicative Parser where
+  pure x = Parser $ \pos s -> Right (x, pos, s)           -- succeed, consume nothing
+  Parser pf <*> Parser px = Parser $ \pos s ->
+    case pf pos s of
+      Left e -> Left e
+      Right (f, pos', rest) ->                            -- first parser gives a function
+        case px pos' rest of
+          Left e -> Left e
+          Right (x, pos'', rest') -> Right (f x, pos'', rest')  -- feed it the second result
