@@ -29,4 +29,4 @@ tag t inner = "<" ++ t ++ ">" ++ inner ++ "</" ++ t ++ ">"
 
 escape :: String -> String
 escape = concatMap esc
-  where esc '<' = "<"; esc '>' = ">"; esc '&' = "&"; esc c = [c]
+  where esc '<' = "&lt;"; esc '>' = "&gt;"; esc '&' = "&amp;"; esc c = [c]
