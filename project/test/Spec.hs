@@ -1,6 +1,7 @@
 module Main (main) where
 
 import Control.Applicative (many, some, (<|>))
+import Control.Exception (try, IOException)
 import Data.Char (isDigit)
 import qualified Data.Map as Map
 import System.Directory (getTemporaryDirectory, removePathForcibly)
@@ -230,11 +231,36 @@ serialiseScalar YNull         = "null"
 serialiseScalar (YNumber n)   = show n
 serialiseScalar _             = ""
 
+-- A random route name like "/abc".
+genRouteName :: Gen String
+genRouteName = ('/' :) <$> listOf1 (elements ['a' .. 'z'])
+
+-- Link integrity: a build succeeds iff every internal link points at a real
+-- route. We generate a set of routes plus one page that links to `target`,
+-- and check resolveLinks throws exactly when `target` is not among the routes.
+prop_linkIntegrity :: Property
+prop_linkIntegrity = forAll gen $ \(routes, target) -> ioProperty $ do
+  let pages = mkPage "/home" [Paragraph [Link [Text "x"] (Internal target)]]
+            : [ mkPage r [] | r <- routes ]
+      site  = Site pages YNull Map.empty
+      known = "/home" : routes
+  result <- try (resolveLinks site) :: IO (Either IOException Site)
+  pure $ case result of
+    Right _ -> target `elem`    known
+    Left _  -> target `notElem` known
+  where
+    gen = do
+      routes <- listOf genRouteName
+      target <- oneof [elements ("/home" : routes), genRouteName]
+      pure (routes, target)
+
 propertySpec :: Spec
-propertySpec = describe "properties" $
+propertySpec = describe "properties" $ do
   it "round-trips YAML scalars: parse (serialise v) == v" $
     property $ forAll genScalar $ \v ->
       parseYaml (serialiseScalar v ++ "\n") === Right v
+  it "a build resolves iff every internal link points at a real route" $
+    property prop_linkIntegrity
 
 --------------------------------------------------------------------------------
 -- 9. End-to-end builds against fixtures
