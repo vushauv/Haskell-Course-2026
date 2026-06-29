@@ -5,8 +5,9 @@ import Mdethodology.Site.Routes (routeForPage)
 import Mdethodology.Parser.Yaml (parseYaml)
 import Mdethodology.Parser.Markdown (parseMarkdown)
 import System.Directory (listDirectory, doesDirectoryExist, doesFileExist)
-import System.FilePath ((</>), takeExtension, takeBaseName, takeDirectory, splitDirectories)
+import System.FilePath ((</>), takeExtension, takeBaseName, takeDirectory, splitDirectories, takeFileName)
 import Control.Monad (forM)
+import Data.List (intercalate)
 import qualified Data.Map as Map
 
 -- Recursively list every file under a directory.
@@ -54,6 +55,26 @@ loadConfig root = do
         Right v -> pure v
         Left e  -> ioError (userError ("config.yml error: " ++ show e))
 
+-- A path relative to the root, as a forward-slash string ("data/authors.yml").
+relativeTo :: FilePath -> FilePath -> String
+relativeTo root path =
+  intercalate "/" (drop (length (splitDirectories root)) (splitDirectories path))
+
+-- Load every standalone .yml file (except the root config.yml) into a map
+-- keyed by its path relative to the root.
+loadData :: FilePath -> IO (Map.Map String YamlValue)
+loadData root = do
+  files <- walk root
+  let ymlFiles = [ f | f <- files
+                     , takeExtension f == ".yml"
+                     , relativeTo root f /= "config.yml" ]
+  pairs <- forM ymlFiles $ \f -> do
+    raw <- readFile f
+    case parseYaml raw of
+      Right v -> pure (relativeTo root f, v)
+      Left e  -> ioError (userError (takeFileName f ++ " error: " ++ show e))
+  pure (Map.fromList pairs)
+
 loadSources :: FilePath -> Pass
 loadSources root _ = do            -- ignore the incoming (empty) Site; we build it
   files <- walk root
@@ -70,7 +91,8 @@ loadSources root _ = do            -- ignore the incoming (empty) Site; we build
       (_, Left e) -> ioError (userError ("Markdown error: " ++ show e))
   templates <- loadTemplates root
   config    <- loadConfig root
-  pure (Site pages config templates)
+  dat       <- loadData root
+  pure (Site pages config templates dat)
   where
     -- the page's template name comes from `layout:` in frontmatter (default "default")
     templateOf (YMap m) = case Map.lookup "layout" m of

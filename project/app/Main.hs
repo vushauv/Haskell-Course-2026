@@ -10,6 +10,6 @@ main = do
   args <- getArgs
   case args of
     ("build" : src : "-o" : out : _) -> do
-      _ <- runPipeline (defaultPipeline src out) (Site [] YNull Map.empty)
+      _ <- runPipeline (defaultPipeline src out) (Site [] YNull Map.empty Map.empty)
       putStrLn ("built " ++ src ++ " -> " ++ out)
     _ -> putStrLn "usage: mdethodology build <src> -o <out>"

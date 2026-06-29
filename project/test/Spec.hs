@@ -206,11 +206,11 @@ linksSpec = describe "link resolution" $ do
   it "accepts a site whose internal links all resolve" $ do
     let site = Site [ mkPage "/"      [Paragraph [Link [Text "a"] (Internal "/about")]]
                     , mkPage "/about" [] ]
-                    YNull Map.empty
+                    YNull Map.empty Map.empty
     resolveLinks site `shouldReturn` site
   it "rejects a dangling internal link" $ do
     let site = Site [ mkPage "/" [Paragraph [Link [Text "a"] (Internal "/missing")]] ]
-                    YNull Map.empty
+                    YNull Map.empty Map.empty
     resolveLinks site `shouldThrow` anyException
 
 --------------------------------------------------------------------------------
@@ -242,7 +242,7 @@ prop_linkIntegrity :: Property
 prop_linkIntegrity = forAll gen $ \(routes, target) -> ioProperty $ do
   let pages = mkPage "/home" [Paragraph [Link [Text "x"] (Internal target)]]
             : [ mkPage r [] | r <- routes ]
-      site  = Site pages YNull Map.empty
+      site  = Site pages YNull Map.empty Map.empty
       known = "/home" : routes
   result <- try (resolveLinks site) :: IO (Either IOException Site)
   pure $ case result of
@@ -271,15 +271,19 @@ buildFixture src = do
   tmp <- getTemporaryDirectory
   let out = tmp </> "mdethodology-test" </> takeFileName src
   removePathForcibly out
-  _ <- runPipeline (defaultPipeline src out) (Site [] YNull Map.empty)
+  _ <- runPipeline (defaultPipeline src out) (Site [] YNull Map.empty Map.empty)
   pure out
 
 endToEndSpec :: Spec
 endToEndSpec = describe "end-to-end build" $ do
   it "loads config.yml into siteConfig" $ do
-    site <- loadSources "test/fixtures/basic" (Site [] YNull Map.empty)
+    site <- loadSources "test/fixtures/basic" (Site [] YNull Map.empty Map.empty)
     siteConfig site
       `shouldBe` YMap (Map.fromList [("siteName", YString "mdethodology")])
+  it "loads standalone .yml files into siteData" $ do
+    site <- loadSources "test/fixtures/basic" (Site [] YNull Map.empty Map.empty)
+    Map.lookup "data/authors.yml" (siteData site)
+      `shouldBe` Just (YList [YString "Alice", YString "Bob"])
   it "builds the basic fixture with templated, routed pages" $ do
     out <- buildFixture "test/fixtures/basic"
     idx <- readFile (out </> "index.html")
