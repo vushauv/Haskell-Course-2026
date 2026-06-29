@@ -33,3 +33,39 @@ link = do
 -- helper: run `open`, then `p`, then `close`, keeping only p's result
 between :: Parser open -> Parser close -> Parser a -> Parser a
 between open close p = open *> p <* close
+
+
+block :: Parser Block
+block = heading <|> codeBlock <|> bulletList <|> paragraph
+  where
+    heading = do
+      hashes <- some (char '#')
+      _      <- char ' '
+      ins    <- some inline
+      _      <- char '\n'
+      pure (Heading (length hashes) ins)
+
+    paragraph = do
+      ins <- some inline
+      _   <- char '\n'
+      pure (Paragraph ins)
+
+    bulletList = BulletList <$> some item
+      where item = do
+              _   <- string "- "
+              ins <- some inline
+              _   <- char '\n'
+              pure [Paragraph ins]
+
+    codeBlock = do
+      _    <- string "```"
+      lang <- many (satisfy (/= '\n'));  _ <- char '\n'
+      body <- manyTill anyChar (string "```")
+      pure (CodeBlock (if null lang then Nothing else Just lang) body)
+
+-- A document is many blocks separated by blank lines.
+document :: Parser [Block]
+document = many (block <* many (char '\n'))
+
+parseMarkdown :: String -> Either ParseError [Block]
+parseMarkdown = parse document
