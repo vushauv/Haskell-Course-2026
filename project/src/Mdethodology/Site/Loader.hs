@@ -4,7 +4,7 @@ import Mdethodology.Types
 import Mdethodology.Site.Routes (routeFor)
 import Mdethodology.Parser.Yaml (parseYaml)
 import Mdethodology.Parser.Markdown (parseMarkdown)
-import System.Directory (listDirectory, doesDirectoryExist)
+import System.Directory (listDirectory, doesDirectoryExist, doesFileExist)
 import System.FilePath ((</>), takeExtension, takeBaseName, takeDirectory, splitDirectories)
 import Control.Monad (forM)
 import qualified Data.Map as Map
@@ -41,6 +41,19 @@ loadTemplates root = do
     pure (takeBaseName f, contents)   -- "default.html" -> "default"
   pure (Map.fromList pairs)
 
+-- Read the directory-wide config.yml at the root, if present.
+loadConfig :: FilePath -> IO YamlValue
+loadConfig root = do
+  let path = root </> "config.yml"
+  exists <- doesFileExist path
+  if not exists
+    then pure YNull
+    else do
+      raw <- readFile path
+      case parseYaml raw of
+        Right v -> pure v
+        Left e  -> ioError (userError ("config.yml error: " ++ show e))
+
 loadSources :: FilePath -> Pass
 loadSources root _ = do            -- ignore the incoming (empty) Site; we build it
   files <- walk root
@@ -56,7 +69,8 @@ loadSources root _ = do            -- ignore the incoming (empty) Site; we build
       (Left e, _) -> ioError (userError ("YAML error: "  ++ show e))
       (_, Left e) -> ioError (userError ("Markdown error: " ++ show e))
   templates <- loadTemplates root
-  pure (Site pages YNull templates)
+  config    <- loadConfig root
+  pure (Site pages config templates)
   where
     -- the page's template name comes from `layout:` in frontmatter (default "default")
     templateOf (YMap m) = case Map.lookup "layout" m of

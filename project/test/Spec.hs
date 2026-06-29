@@ -15,6 +15,7 @@ import Mdethodology.Site.Routes (routeFor)
 import Mdethodology.Site.Render (renderBlocks)
 import Mdethodology.Site.Template (renderTemplate)
 import Mdethodology.Site.Links (resolveLinks)
+import Mdethodology.Site.Loader (loadSources)
 import Mdethodology.Site.Pipeline (runPipeline, defaultPipeline)
 import Mdethodology.Types
 
@@ -230,6 +231,10 @@ buildFixture src = do
 
 endToEndSpec :: Spec
 endToEndSpec = describe "end-to-end build" $ do
+  it "loads config.yml into siteConfig" $ do
+    site <- loadSources "test/fixtures/basic" (Site [] YNull Map.empty)
+    siteConfig site
+      `shouldBe` YMap (Map.fromList [("siteName", YString "mdethodology")])
   it "builds the basic fixture with templated, routed pages" $ do
     out <- buildFixture "test/fixtures/basic"
     idx <- readFile (out </> "index.html")
