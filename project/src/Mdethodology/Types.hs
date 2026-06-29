@@ -38,3 +38,5 @@ data SourceFile = SourceFile
   , srcBody        :: [Block]
   } deriving (Eq, Show)
 
+newtype Route = Route { unRoute :: String }
+  deriving (Eq, Ord, Show)
