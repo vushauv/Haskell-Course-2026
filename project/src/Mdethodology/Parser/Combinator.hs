@@ -30,3 +30,10 @@ instance Applicative Parser where
         case px pos' rest of
           Left e -> Left e
           Right (x, pos'', rest') -> Right (f x, pos'', rest')  -- feed it the second result
+
+
+instance Monad Parser where
+  Parser p >>= f = Parser $ \pos s ->
+    case p pos s of
+      Left  e               -> Left e
+      Right (a, pos', rest) -> runParser (f a) pos' rest   -- f *chooses* the next parser using a
