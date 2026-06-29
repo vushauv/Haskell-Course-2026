@@ -77,6 +77,15 @@ string = traverse char
 spaces :: Parser ()
 spaces = () <$ many (satisfy (`elem` " \t"))
 
+anyChar :: Parser Char
+anyChar = satisfy (const True)
+
+manyTill :: Parser a -> Parser end -> Parser [a]
+manyTill p end = go
+  where
+    go =  (end *> pure [])          -- end matched: stop, return []
+      <|> ((:) <$> p <*> go)        -- else: parse one p, then recurse
+
 
 -- The top-level entry point: run a parser on a whole string.
 parse :: Parser a -> String -> Either ParseError a
@@ -84,3 +93,5 @@ parse p s =
   case runParser p (Pos 1 1) s of
     Left  e          -> Left e
     Right (a, _, _)  -> Right a
+
+
