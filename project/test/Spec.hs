@@ -11,7 +11,7 @@ import Test.QuickCheck
 import Mdethodology.Parser.Combinator
 import Mdethodology.Parser.Yaml (parseYaml)
 import Mdethodology.Parser.Markdown (parseMarkdown)
-import Mdethodology.Site.Routes (routeFor)
+import Mdethodology.Site.Routes (routeFor, routeForPage)
 import Mdethodology.Site.Render (renderBlocks)
 import Mdethodology.Site.Template (renderTemplate)
 import Mdethodology.Site.Links (resolveLinks)
@@ -138,6 +138,14 @@ routesSpec = describe "route derivation" $ do
     routeFor "site" "site/about.md" `shouldBe` Route "/about"
   it "keeps nested paths" $
     routeFor "site" "site/blog/intro.md" `shouldBe` Route "/blog/intro"
+  it "uses an explicit slug from frontmatter" $
+    routeForPage "site" "site/whatever.md"
+      (YMap (Map.fromList [("slug", YString "/custom")])) `shouldBe` Route "/custom"
+  it "adds a leading slash to a bare slug" $
+    routeForPage "site" "site/whatever.md"
+      (YMap (Map.fromList [("slug", YString "custom")])) `shouldBe` Route "/custom"
+  it "falls back to the path when there is no slug" $
+    routeForPage "site" "site/about.md" YNull `shouldBe` Route "/about"
 
 --------------------------------------------------------------------------------
 -- 5. Template substitution (fixed table)

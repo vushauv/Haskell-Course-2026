@@ -1,7 +1,7 @@
 module Mdethodology.Site.Loader (loadSources) where
 
 import Mdethodology.Types
-import Mdethodology.Site.Routes (routeFor)
+import Mdethodology.Site.Routes (routeForPage)
 import Mdethodology.Parser.Yaml (parseYaml)
 import Mdethodology.Parser.Markdown (parseMarkdown)
 import System.Directory (listDirectory, doesDirectoryExist, doesFileExist)
@@ -64,7 +64,7 @@ loadSources root _ = do            -- ignore the incoming (empty) Site; we build
     case (parseYaml fmText, parseMarkdown bodyText) of
       (Right fm, Right body) ->
         let src   = SourceFile path fm body
-            route = routeFor root path
+            route = routeForPage root path fm
         in pure (route, Page src route (templateOf fm))
       (Left e, _) -> ioError (userError ("YAML error: "  ++ show e))
       (_, Left e) -> ioError (userError ("Markdown error: " ++ show e))
