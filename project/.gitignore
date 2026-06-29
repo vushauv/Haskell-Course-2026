@@ -4,6 +4,9 @@
 CLAUDE.md
 GUIDE.md
 
+site/
+out/
+
 
 dist
 dist-*
