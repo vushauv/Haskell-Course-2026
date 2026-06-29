@@ -76,3 +76,11 @@ string = traverse char
 
 spaces :: Parser ()
 spaces = () <$ many (satisfy (`elem` " \t"))
+
+
+-- The top-level entry point: run a parser on a whole string.
+parse :: Parser a -> String -> Either ParseError a
+parse p s =
+  case runParser p (Pos 1 1) s of
+    Left  e          -> Left e
+    Right (a, _, _)  -> Right a
