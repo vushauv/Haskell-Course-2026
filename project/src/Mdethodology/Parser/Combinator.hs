@@ -57,3 +57,13 @@ advance (Pos l _) '\n' = Pos (l + 1) 1
 advance (Pos l c) _    = Pos l (c + 1)
 
 
+-- Consume one char if it satisfies the predicate.
+satisfy :: (Char -> Bool) -> Parser Char
+satisfy ok = Parser $ \pos s ->
+  case s of
+    (c:cs) | ok c      -> Right (c, advance pos c, cs)
+           | otherwise -> Left (ParseError pos ("unexpected '" ++ [c] ++ "'"))
+    []                 -> Left (ParseError pos "unexpected end of input")
+
+char :: Char -> Parser Char
+char c = satisfy (== c)
