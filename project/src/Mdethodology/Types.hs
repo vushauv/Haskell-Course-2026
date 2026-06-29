@@ -30,3 +30,11 @@ data LinkTarget
   = External String                 -- http://...  — leave alone
   | Internal String                 -- ./about.md  — resolve later
   deriving (Eq, Show)
+
+
+data SourceFile = SourceFile
+  { srcPath        :: FilePath
+  , srcFrontmatter :: YamlValue
+  , srcBody        :: [Block]
+  } deriving (Eq, Show)
+
