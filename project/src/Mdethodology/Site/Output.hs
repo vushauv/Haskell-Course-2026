@@ -26,7 +26,12 @@ writeOutput outDir site = do
           createDirectoryIfMissing True (takeDirectory file)
           writeFile file html
         Left err   -> ioError (userError (show err))
-    titleOf _ = "Untitled"          -- pull from frontmatter as an exercise
+    -- read `title:` out of the page's parsed YAML frontmatter
+    titleOf page = case srcFrontmatter (pageSource page) of
+      YMap m -> case Map.lookup "title" m of
+                  Just (YString t) -> t
+                  _                -> "Untitled"
+      _      -> "Untitled"
     dropLeadingSlash ('/':rest) = if null rest then "index" else rest
     dropLeadingSlash s          = s
     defaultTemplate =
