@@ -14,6 +14,8 @@ newtype Parser a = Parser
   { runParser :: Pos -> String -> Either ParseError (a, Pos, String) }
 
 
+-- implementation of typeclasses
+
 instance Functor Parser where
   fmap f (Parser p) = Parser $ \pos s ->
     case p pos s of
@@ -45,3 +47,13 @@ instance Alternative Parser where
     case p pos s of
       Left _    -> q pos s     -- left failed: try the right on the *original* input
       success   -> success     -- left worked: keep it
+
+
+-- Primitive parsers
+
+-- Advance the position, handling newlines.
+advance :: Pos -> Char -> Pos
+advance (Pos l _) '\n' = Pos (l + 1) 1
+advance (Pos l c) _    = Pos l (c + 1)
+
+
